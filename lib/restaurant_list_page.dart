@@ -35,7 +35,7 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             child: TextField(              
               decoration: const InputDecoration(
                 hintText: 'Search name/city/foods/drinks...',
@@ -53,7 +53,7 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8),
-              child: _FutureBuilderRestaurants(context, _searchString)
+              child: futureBuilderRestaurants(context, _searchString)
             )
           )
         ]
@@ -61,7 +61,7 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
     );
   }
 
-  FutureBuilder<String> _FutureBuilderRestaurants(BuildContext context, String searchString) {
+  FutureBuilder<String> futureBuilderRestaurants(BuildContext context, String searchString) {
     return FutureBuilder<String>(
       future: DefaultAssetBundle.of(context).loadString('assets/local_restaurant.json'),
       builder: (context, snapshot) {

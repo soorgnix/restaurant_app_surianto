@@ -51,7 +51,9 @@ class RestaurantDetailsPage extends StatelessWidget {
                   const Divider(color: Colors.grey),
                   Text(
                     restaurant.description,
-                    style: Theme.of(context).textTheme.bodyMedium
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    maxLines: 6,
+                    overflow: TextOverflow.ellipsis
                   ),
                   const Divider(color: Colors.grey),
                   SizedBox(
