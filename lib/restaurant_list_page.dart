@@ -34,27 +34,31 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextField(              
-              decoration: const InputDecoration(
-                hintText: 'Search name/city/foods/drinks...',
-                focusedBorder: OutlineInputBorder(),
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchString = value;
-                });
-              }
-            ),
-          ),
           Expanded(
+            flex: MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 700 ? MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 200 ? 3 : 1 : 1,
             child: Padding(
               padding: const EdgeInsets.all(8),
-              child: futureBuilderRestaurants(context, _searchString)
+              child: SizedBox(
+                height:100,
+                child: TextField(              
+                  decoration: const InputDecoration(
+                    hintText: 'Search name/city/foods/drinks...',
+                    focusedBorder: OutlineInputBorder(),
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchString = value;
+                    });
+                  }
+                ),
+              )
             )
+          ),
+          Expanded(
+            flex: MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 700 ? MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 200 ? 1 : 5 : 12,
+            child: futureBuilderRestaurants(context, _searchString)
           )
         ]
       )
