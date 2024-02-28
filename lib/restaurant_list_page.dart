@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:restaurant_app/data/model/restaurant.dart';
+import 'package:provider/provider.dart';
+import 'package:restaurant_app/common/restaurant_const.dart';
+import 'package:restaurant_app/data/api/api_service.dart';
+import 'package:restaurant_app/data/model/restaurant_arguments.dart';
+import 'package:restaurant_app/data/model/restaurant_filter.dart';
+import 'package:restaurant_app/provider/restaurant_provider.dart';
 import 'package:restaurant_app/restaurant_details_page.dart';
 
 class RestaurantListPage extends StatefulWidget {
@@ -13,7 +18,7 @@ class RestaurantListPage extends StatefulWidget {
 
 class _RestaurantListPageState extends State<RestaurantListPage> {
   String _searchString = '';
-
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,64 +37,84 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
           ]
         )
       ),
-      body: Column(
-        children: [
-          Expanded(
-            flex: MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 700 ? MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 200 ? 3 : 1 : 1,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: SizedBox(
-                height:100,
-                child: TextField(              
-                  decoration: const InputDecoration(
-                    hintText: 'Search name/city/foods/drinks...',
-                    focusedBorder: OutlineInputBorder(),
-                    border: OutlineInputBorder(),
-                    isDense: true,
+      body: ChangeNotifierProvider<RestaurantProvider>(
+        create: (_) => RestaurantProvider(apiService: ApiService(), filter: _searchString),
+        child: Consumer<RestaurantProvider>(
+          builder: (context, state, _) {
+            if (state.state == ResultState.loading) {
+              return const Center(child:CircularProgressIndicator());
+            } else if (state.state == ResultState.hasData) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 700 ? MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 200 ? 1 : 1 : 1,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: SizedBox(
+                        height:100,
+                        child: TextField(     
+                          decoration: const InputDecoration(
+                            hintText: 'Search name/city/foods/drinks...',
+                            focusedBorder: OutlineInputBorder(),
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchString = value;
+                            });
+                          }
+                        ),
+                      ),
+                    )
                   ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchString = value;
-                    });
-                  }
+                  Expanded(
+                    flex: MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 700 ? MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 200 ? 1 : 1 : 1,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: ElevatedButton(                        
+                        child: const Text('Search'),
+                        onPressed: () {
+                          var restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+                          restaurantProvider.searchRestaurant(_searchString);
+                        }
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 700 ? MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 200 ? 1 : 4 : 11,
+                    child: ListView.builder(
+                      itemCount: state.result.restaurants.length,
+                      itemBuilder: (context, index) {
+                        return _buildRestaurantItem(context, state.result.restaurants[index]);
+                      }
+                    )
+                  )
+                ]
+              );
+            } else if (state.state == ResultState.noData) {
+              return Center(
+                child: Material(
+                  child: Text(state.message),
                 ),
-              )
-            )
-          ),
-          Expanded(
-            flex: MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 700 ? MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom <= 200 ? 1 : 5 : 12,
-            child: futureBuilderRestaurants(context, _searchString)
-          )
-        ]
-      )
-    );
-  }
-
-  FutureBuilder<String> futureBuilderRestaurants(BuildContext context, String searchString) {
-    return FutureBuilder<String>(
-      future: DefaultAssetBundle.of(context).loadString('assets/local_restaurant.json'),
-      builder: (context, snapshot) {
-        final List<Restaurant> restaurants = parseRestaurant(snapshot.data);
-        final List<Restaurant> filteredRestaurants = searchString.isEmpty
-            ? restaurants // Return all restaurants if search string is empty
-            : restaurants.where((restaurant) =>
-                restaurant.name.toLowerCase().contains(searchString.toLowerCase()) ||
-                restaurant.city.toLowerCase().contains(searchString.toLowerCase()) ||
-                restaurant.menus.foods.any((food) => food.name.toLowerCase().contains(searchString.toLowerCase())) ||
-                restaurant.menus.drinks.any((drink) => drink.name.toLowerCase().contains(searchString.toLowerCase()))
-            ).toList();
-        if (filteredRestaurants.isEmpty) {
-          return const Text('No restaurant found');
-        }
-        else {
-          return ListView.builder(
-            itemCount: filteredRestaurants.length,
-            itemBuilder: (context, index) {
-              return _buildRestaurantItem(context, filteredRestaurants[index]);
+              );
+            } else if (state.state == ResultState.error) {
+              return Center(
+                child: Material(
+                  child: Text(state.message),
+                ),
+              );
+            } else {
+              return const Center(
+                child: Material(
+                  child: Text(''),
+                ),
+              );
             }
-          );
-        }
-      }
+          }
+        )
+      )
     );
   }
 
@@ -101,7 +126,7 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10), // Adjust the radius as needed
           child: Image.network(
-            restaurant.pictureId,
+            '${RestaurantConst.imageUrl}${RestaurantConst.smallUrl}/${restaurant.pictureId}',
             width: 100,
             fit: BoxFit.cover,        
             errorBuilder: (ctx, error, _) => const Icon(Icons.error)
@@ -141,7 +166,7 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
           ]
         ),
       onTap: () {
-        Navigator.pushNamed(context, RestaurantDetailsPage.routeName, arguments: restaurant);
+        Navigator.pushNamed(context, RestaurantDetailsPage.routeName, arguments: RestaurantArguments(restaurant.id, restaurant.pictureId, restaurant.name));
       }
     );
   }
