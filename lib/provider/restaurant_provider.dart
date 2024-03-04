@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:restaurant_app/data/api/api_service.dart';
 import 'package:restaurant_app/data/model/restaurant_filter.dart';
+import 'package:http/http.dart' as http;
 
 enum ResultState { loading, noData, hasData, error }
  
@@ -26,9 +27,10 @@ class RestaurantProvider extends ChangeNotifier {
  
   Future<dynamic> _fetchAllRestaurant() async {
     try {
+      http.Client httpClient = http.Client(); 
       _state = ResultState.loading;
       notifyListeners();
-      final restaurants = await apiService.getRestaurantsWithFilter(filter);
+      final restaurants = await apiService.getRestaurantsWithFilter(httpClient, filter);
       if (restaurants.restaurants.isEmpty) {
         _state = ResultState.noData;
         notifyListeners();
@@ -52,9 +54,10 @@ class RestaurantProvider extends ChangeNotifier {
 
   void searchRestaurant(String filter) async {
     try {
+      http.Client httpClient = http.Client();
       _state = ResultState.loading;
       notifyListeners();
-      final restaurants = await apiService.getRestaurantsWithFilter(filter);
+      final restaurants = await apiService.getRestaurantsWithFilter(httpClient, filter);
       if (restaurants.restaurants.isEmpty) {
         _state = ResultState.noData;
         notifyListeners();

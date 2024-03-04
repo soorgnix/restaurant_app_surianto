@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:restaurant_app/common/restaurant_const.dart';
 import 'package:restaurant_app/data/api/api_service.dart';
-import 'package:restaurant_app/data/model/restaurant_arguments.dart';
-import 'package:restaurant_app/data/model/restaurant_filter.dart';
 import 'package:restaurant_app/provider/restaurant_provider.dart';
-import 'package:restaurant_app/restaurant_details_page.dart';
+import 'package:restaurant_app/widgets/restaurant_card.dart';
 
 class RestaurantListPage extends StatefulWidget {
   static const routeName = '/restaurant_list_page';
@@ -87,7 +84,7 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
                     child: ListView.builder(
                       itemCount: state.result.restaurants.length,
                       itemBuilder: (context, index) {
-                        return _buildRestaurantItem(context, state.result.restaurants[index]);
+                        return RestaurantCard(restaurant: state.result.restaurants[index]);
                       }
                     )
                   )
@@ -115,59 +112,6 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
           }
         )
       )
-    );
-  }
-
-  Widget _buildRestaurantItem(BuildContext context, Restaurant restaurant) {
-    return ListTile(
-      contentPadding: const EdgeInsets.all(4),
-      leading: Hero(
-        tag:restaurant.pictureId,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10), // Adjust the radius as needed
-          child: Image.network(
-            '${RestaurantConst.imageUrl}${RestaurantConst.smallUrl}/${restaurant.pictureId}',
-            width: 100,
-            fit: BoxFit.cover,        
-            errorBuilder: (ctx, error, _) => const Icon(Icons.error)
-          )
-        )
-      ),
-      title: Text(
-        restaurant.name,
-        style: Theme.of(context).textTheme.bodyMedium,
-      ),
-      subtitle:
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.location_on_outlined
-                ),
-                Text(
-                  restaurant.city,
-                  style: Theme.of(context).textTheme.bodySmall
-                ),
-              ]
-            ),
-            Row(
-              children: [
-                const Icon(
-                  Icons.star_border_outlined                  
-                ),
-                Text(
-                  restaurant.rating.toString(),
-                  style: Theme.of(context).textTheme.bodySmall
-                )
-              ],
-            )
-          ]
-        ),
-      onTap: () {
-        Navigator.pushNamed(context, RestaurantDetailsPage.routeName, arguments: RestaurantArguments(restaurant.id, restaurant.pictureId, restaurant.name));
-      }
     );
   }
 }
